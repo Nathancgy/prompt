@@ -6,7 +6,8 @@ import { db } from "@/lib/db";
 import bcrypt from "bcrypt";
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(db) as any,
+  // @ts-expect-error - PrismaAdapter has compatibility issues with NextAuth.js types
+  adapter: PrismaAdapter(db),
   providers: [
     CredentialsProvider({
       name: "credentials",
