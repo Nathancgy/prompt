@@ -1,73 +1,67 @@
-# Prompt Manager
+# Weekly Learning Tracker
 
-A web application for managing AI prompts for your coding projects. Organize prompts by project, use templates, and streamline your AI-assisted development workflow.
+A minimalistic web application to track what you learn each day of the week. This tool helps you organize your learning resources by topics and days, making it easy to present your progress during weekly meetings with your teacher.
 
 ## Features
 
-- **User Authentication**: Secure sign-up and login
-- **Project Management**: Create and organize projects
-- **Prompt Storage**: Save and organize prompts by project
-- **Templates**: Use pre-made prompt templates for common tasks
-- **Default Meta Prompts**: Set default prompts to be included with all your project prompts
-- **Copy to Clipboard**: Easily copy prompts for use with AI tools
+- **Weekly View**: Navigate between weeks to see your learning progress over time
+- **Topic Management**: Create, view, and delete learning topics for each day
+- **Resource Tracking**: Add resources with links, descriptions, time commitments, and screenshots
+- **Responsive Design**: Works on desktop and mobile devices
+- **Local Storage**: All data is stored locally in your browser
 
-## Tech Stack
+## How to Use
 
-- **Frontend**: Next.js, React, Tailwind CSS
-- **Backend**: Next.js API Routes
-- **Database**: Prisma with SQLite (can be configured for other databases)
-- **Authentication**: NextAuth.js
+### Getting Started
 
-## Getting Started
+1. Open `index.html` in a web browser
+2. Navigate to the current week or use the arrow buttons to move between weeks
+3. Click on a day to view or add topics
 
-### Prerequisites
+### Adding a Topic
 
-- Node.js 18+ and npm
+1. Select a day
+2. Click the "Add Topic" button
+3. Enter a title for your topic (e.g., "JavaScript Fundamentals")
+4. Click "Add Topic"
 
-### Installation
+### Adding Resources to a Topic
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/prompt-manager.git
-   cd prompt-manager
-   ```
+1. Within a topic card, click "Add Resource"
+2. Fill in the following information:
+   - URL (optional): Link to the resource
+   - Title: Name of the resource
+   - Description (optional): What you learned from this resource
+   - Time Commitment (optional): How much time you spent
+   - Screenshot URL (optional): A visual representation of what you learned
+3. Click "Add Resource"
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+### Deleting Items
 
-3. Set up the database:
-   ```bash
-   npx prisma migrate dev
-   ```
+- To delete a topic, click the trash icon on the topic card
+- To delete a resource, click the "Delete" button next to the resource
 
-4. Seed the database with templates:
-   ```bash
-   npm run seed
-   ```
+## Installation
 
-5. Start the development server:
-   ```bash
-   npm run dev
-   ```
+This is a client-side application with no backend dependencies. To run it:
 
-6. Open [http://localhost:3000](http://localhost:3000) in your browser.
+1. Download or clone the repository
+2. Open `index.html` in any modern web browser
 
-## Environment Variables
+You can also host it on any static web hosting service like GitHub Pages, Netlify, or Vercel.
 
-Create a `.env` file in the root directory with the following variables:
+## Technologies Used
 
-```
-DATABASE_URL="file:./dev.db"
-NEXTAUTH_SECRET="your-secret-key-here"
-NEXTAUTH_URL="http://localhost:3000"
-```
+- HTML5
+- CSS3
+- JavaScript (ES6+)
+- Font Awesome for icons
+- LocalStorage API for data persistence
 
-## Deployment
+## Customization
 
-This application can be deployed to Vercel, Netlify, or any other platform that supports Next.js applications.
+You can easily customize the application by:
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+- Modifying `styles.css` to change colors, fonts, or layout
+- Extending `script.js` to add more features or change behavior
+- Editing `index.html` to add more elements or change the structure 
