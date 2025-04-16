@@ -92,9 +92,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize the time picker with hours and minutes
     function initializeTimePicker() {
-        // Populate hours (1-12)
+        // Populate hours (0-12)
         hoursScroll.innerHTML = '';
-        for (let i = 1; i <= 12; i++) {
+        for (let i = 0; i <= 12; i++) {
             const hourItem = document.createElement('div');
             hourItem.className = 'time-item';
             hourItem.textContent = i;
@@ -133,6 +133,21 @@ document.addEventListener('DOMContentLoaded', () => {
         // If there's already a value, scroll to it
         const timeValue = document.getElementById('link-time').value;
         if (timeValue) {
+            // Check for only minutes pattern (e.g., "30 mins")
+            const minOnlyMatch = timeValue.match(/^(\d+)\s*(?:minutes?|mins?)$/i);
+            if (minOnlyMatch) {
+                const minutes = parseInt(minOnlyMatch[1], 10);
+                
+                selectHour(0);
+                selectMinute(Math.floor(minutes / 5) * 5); // Round to nearest 5
+                
+                // Scroll to the selected values
+                scrollToSelected(hoursScroll, 0);
+                scrollToSelected(minutesScroll, Math.floor(minutes / 5) * 5);
+                return;
+            }
+            
+            // Regular pattern with hours (and optional minutes)
             const match = timeValue.match(/(\d+)\s*(?:hours?|hrs?)?(?:\s+(\d+)\s*(?:minutes?|mins?)?)?/i);
             if (match) {
                 const hours = parseInt(match[1], 10);
@@ -194,12 +209,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update the time display
     function updateTimeDisplay() {
         if (state.timePicker.selectedHour !== null) {
-            let displayText = `${state.timePicker.selectedHour} hour`;
-            if (state.timePicker.selectedHour !== 1) displayText += 's';
+            let displayText = '';
             
-            if (state.timePicker.selectedMinute !== null && state.timePicker.selectedMinute > 0) {
-                displayText += ` ${state.timePicker.selectedMinute} min`;
-                if (state.timePicker.selectedMinute !== 1) displayText += 's';
+            // Handle the case of 0 hours
+            if (state.timePicker.selectedHour === 0) {
+                if (state.timePicker.selectedMinute !== null && state.timePicker.selectedMinute > 0) {
+                    displayText = `${state.timePicker.selectedMinute} min`;
+                    if (state.timePicker.selectedMinute !== 1) displayText += 's';
+                } else {
+                    displayText = '0 mins';
+                }
+            } else {
+                displayText = `${state.timePicker.selectedHour} hour`;
+                if (state.timePicker.selectedHour !== 1) displayText += 's';
+                
+                if (state.timePicker.selectedMinute !== null && state.timePicker.selectedMinute > 0) {
+                    displayText += ` ${state.timePicker.selectedMinute} min`;
+                    if (state.timePicker.selectedMinute !== 1) displayText += 's';
+                }
             }
             
             timeDisplay.textContent = displayText;
@@ -210,12 +237,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // Apply the selected time
     function applyTimeSelection() {
         if (state.timePicker.selectedHour !== null) {
-            let timeValue = `${state.timePicker.selectedHour} hour`;
-            if (state.timePicker.selectedHour !== 1) timeValue += 's';
+            let timeValue = '';
             
-            if (state.timePicker.selectedMinute !== null && state.timePicker.selectedMinute > 0) {
-                timeValue += ` ${state.timePicker.selectedMinute} min`;
-                if (state.timePicker.selectedMinute !== 1) timeValue += 's';
+            // Handle the case of 0 hours
+            if (state.timePicker.selectedHour === 0) {
+                if (state.timePicker.selectedMinute !== null && state.timePicker.selectedMinute > 0) {
+                    timeValue = `${state.timePicker.selectedMinute} min`;
+                    if (state.timePicker.selectedMinute !== 1) timeValue += 's';
+                } else {
+                    timeValue = '0 mins';
+                }
+            } else {
+                timeValue = `${state.timePicker.selectedHour} hour`;
+                if (state.timePicker.selectedHour !== 1) timeValue += 's';
+                
+                if (state.timePicker.selectedMinute !== null && state.timePicker.selectedMinute > 0) {
+                    timeValue += ` ${state.timePicker.selectedMinute} min`;
+                    if (state.timePicker.selectedMinute !== 1) timeValue += 's';
+                }
             }
             
             document.getElementById('link-time').value = timeValue;
@@ -410,16 +449,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     let resourceContent = `
                         <div class="resource-content">
-                            <h4>${resource.title}</h4>
+                            <div class="resource-header">
+                                <h4>${resource.title}</h4>
+                                <div class="resource-actions">
+                                    ${resource.url ? `
+                                        <a href="${resource.url}" class="resource-link-btn" target="_blank">
+                                            <i class="fas fa-external-link-alt"></i> ${resource.buttonText || 'Link'}
+                                        </a>
+                                    ` : ''}
+                                </div>
+                            </div>
                     `;
-                    
-                    if (resource.url) {
-                        resourceContent += `
-                            <a href="${resource.url}" class="resource-link-btn" target="_blank">
-                                <i class="fas fa-external-link-alt"></i> Link
-                            </a>
-                        `;
-                    }
                     
                     if (resource.description) {
                         resourceContent += `
@@ -429,6 +469,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     resourceContent += '<div class="resource-meta">';
                     resourceContent += '<span class="resource-delete"><i class="fas fa-times"></i> Delete</span>';
+                    resourceContent += '<button class="edit-resource-btn" title="Edit Resource"><i class="fas fa-pencil-alt"></i></button>';
                     
                     if (resource.time) {
                         resourceContent += `
@@ -447,9 +488,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     resourceItem.innerHTML = resourceContent;
                     resourceList.appendChild(resourceItem);
                     
-                    // Add event listener for delete
+                    // Add event listeners
                     const deleteBtn = resourceItem.querySelector('.resource-delete');
                     deleteBtn.addEventListener('click', () => deleteResource(topicId, resourceIndex));
+                    
+                    const editBtn = resourceItem.querySelector('.edit-resource-btn');
+                    editBtn.addEventListener('click', () => openEditResourceModal(topicId, resourceIndex));
                 });
             } else {
                 resourceList.innerHTML = `
@@ -479,14 +523,113 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 100);
     }
 
-    // Open the link modal
+    // Open the edit resource modal
+    function openEditResourceModal(topicId, resourceIndex) {
+        const resource = state.data[state.selectedDay][topicId].resources[resourceIndex];
+        
+        // Set the form to edit mode
+        linkForm.dataset.mode = 'edit';
+        linkForm.dataset.topicId = topicId;
+        linkForm.dataset.resourceIndex = resourceIndex;
+        
+        // Pre-fill the form with existing data
+        document.getElementById('link-topic-id').value = topicId;
+        document.getElementById('link-title').value = resource.title || '';
+        document.getElementById('link-url').value = resource.url || '';
+        document.getElementById('link-button-text').value = resource.buttonText || '';
+        document.getElementById('link-description').value = resource.description || '';
+        document.getElementById('link-time').value = resource.time || '';
+        document.getElementById('link-screenshot').value = resource.screenshot || '';
+        
+        // Update time picker display if there's a time value
+        if (resource.time) {
+            timeDisplay.textContent = resource.time;
+        } else {
+            timeDisplay.textContent = 'Select time';
+        }
+        
+        // Change modal title and button text
+        document.querySelector('#link-modal h3').textContent = 'Edit Resource';
+        document.querySelector('#link-modal .submit-btn').textContent = 'Save Changes';
+        
+        // Open the modal
+        linkModal.style.display = 'flex';
+        
+        // Focus on the title input
+        setTimeout(() => {
+            document.getElementById('link-title').focus();
+        }, 100);
+    }
+
+    // Handle link form submission (both for adding and editing)
+    function handleLinkSubmit(e) {
+        e.preventDefault();
+        
+        const topicId = document.getElementById('link-topic-id').value;
+        const linkTitle = document.getElementById('link-title').value.trim();
+        const linkUrl = document.getElementById('link-url').value.trim();
+        const linkButtonText = document.getElementById('link-button-text').value.trim() || 'Link';
+        const linkDescription = document.getElementById('link-description').value.trim();
+        const linkTime = document.getElementById('link-time').value.trim();
+        const linkScreenshot = document.getElementById('link-screenshot').value.trim();
+        
+        if (!linkTitle) return;
+        
+        // Create resource object
+        const resourceData = {
+            title: linkTitle,
+            url: linkUrl,
+            buttonText: linkButtonText,
+            description: linkDescription,
+            time: linkTime,
+            screenshot: linkScreenshot,
+            addedAt: new Date().toISOString()
+        };
+        
+        // Check if editing or adding
+        if (linkForm.dataset.mode === 'edit') {
+            const resourceIndex = parseInt(linkForm.dataset.resourceIndex, 10);
+            
+            // Preserve the original creation date
+            const original = state.data[state.selectedDay][topicId].resources[resourceIndex];
+            if (original && original.addedAt) {
+                resourceData.addedAt = original.addedAt;
+            }
+            
+            // Add edit timestamp
+            resourceData.editedAt = new Date().toISOString();
+            
+            // Update the resource
+            state.data[state.selectedDay][topicId].resources[resourceIndex] = resourceData;
+        } else {
+            // Add new resource
+            state.data[state.selectedDay][topicId].resources.push(resourceData);
+        }
+        
+        // Save and update UI
+        saveData();
+        renderTopics();
+        closeAllModals();
+        
+        // Reset form mode
+        linkForm.dataset.mode = 'add';
+        delete linkForm.dataset.resourceIndex;
+    }
+
+    // Open the link modal for adding a new resource
     function openLinkModal(topicId) {
         linkForm.reset();
+        linkForm.dataset.mode = 'add';
         document.getElementById('link-topic-id').value = topicId;
+        
         // Reset time picker display
         timeDisplay.textContent = 'Select time';
         state.timePicker.selectedHour = null;
         state.timePicker.selectedMinute = null;
+        
+        // Set modal back to add mode
+        document.querySelector('#link-modal h3').textContent = 'New Resource';
+        document.querySelector('#link-modal .submit-btn').textContent = 'Add';
         
         linkModal.style.display = 'flex';
         
@@ -529,38 +672,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Save and update UI
         saveData();
         renderCurrentWeek();
-        renderTopics();
-        closeAllModals();
-    }
-
-    // Handle link form submission
-    function handleLinkSubmit(e) {
-        e.preventDefault();
-        
-        const topicId = document.getElementById('link-topic-id').value;
-        const linkTitle = document.getElementById('link-title').value.trim();
-        const linkUrl = document.getElementById('link-url').value.trim();
-        const linkDescription = document.getElementById('link-description').value.trim();
-        const linkTime = document.getElementById('link-time').value.trim();
-        const linkScreenshot = document.getElementById('link-screenshot').value.trim();
-        
-        if (!linkTitle) return;
-        
-        // Create new resource
-        const newResource = {
-            title: linkTitle,
-            url: linkUrl,
-            description: linkDescription,
-            time: linkTime,
-            screenshot: linkScreenshot,
-            addedAt: new Date().toISOString()
-        };
-        
-        // Add resource to topic
-        state.data[state.selectedDay][topicId].resources.push(newResource);
-        
-        // Save and update UI
-        saveData();
         renderTopics();
         closeAllModals();
     }
